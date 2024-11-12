@@ -15,24 +15,93 @@ The analysis is performed using nf-core workflows:
 - **Data Fetching**: `nf-core/fetchngs` is used to download raw data from GEO.
 - **ChIP-seq Analysis**: `nf-core/chipseq` is used to process, align, and analyze ChIP-seq data, with outputs including peak calling and differential binding analysis.
 
-### Steps to Fetch Data:
-1. Run the following command to fetch the data:
-   ```bash
-   nf-core fetchngs -g GSE68355 -o data/raw
+### Steps to Setup the Analysis
+1. **Set up the configuration file**
+
+   Create a configuration file named `icer.config` with the following content:
+
+   ```groovy
+   process {
+       executor = 'slurm'
+   }
    ```
-   This command will download the raw data files into the `data/raw` directory.
 
-## Analysis Workflow
-The ChIP-seq data is analyzed using `nf-core/chipseq`. The workflow follows standard practices for ChIP-seq analysis, including quality control, alignment, peak calling, and differential analysis.
+2. **Run Fetchngs**
+   First, create an `ids.csv` file that contains the list of GEO accession IDs to be fetched. The file should have the following format:
 
-### Analysis Steps:
-1. **Set Up Configuration File**: The configuration file for running `nf-core/chipseq` is located in `scripts/chipseq_config.yaml`.
-   - Make sure the input, output directories, and reference genome are specified.
+   ```csv
+   id
+   GSE68355
+   ```
 
-2. **Run the ChIP-seq Analysis**:
-   Execute the following command to run the workflow:
+   This file will be used as input for `nf-core/fetchngs`.
+
+   Create a SLURM script to submit the job:
+
    ```bash
-   nextflow run nf-core/chipseq -c scripts/chipseq_config.yaml
+   #SBATCH --job-name=fetchngs
+   #SBATCH --time=4:00:00
+   #SBATCH --cpus-per-task=4
+   #SBATCH --mem=16G
+   #SBATCH --output=fetchngs-%j.out
+
+   # Load Nextflow
+   module load Nextflow
+
+   # Run nf-core/fetchngs to fetch the data from GEO using an ids.csv file
+   nextflow pull nf-core/fetchngs
+   nextflow run nf-core/fetchngs -profile singularity \
+     --input ids.csv \
+     --outdir raw_data \
+     --download_method sratools \
+     --nf_core_pipeline rnaseq \
+     -c icer.config
+   ```
+   Save the script as `fetchngs.sh`. Note: This is not rnaseq data, but there is no chipseq option for samplesheet creation for this pipeline.
+   
+   Submit the job to SLURM:
+
+   ```bash
+   sbatch fetchngs.sh
+   ```
+
+3. **Run ChIP-seq Analysis**
+
+   After fetching the raw data, you can use the `nf-core/chipseq` pipeline to analyze the data.
+
+   Create a SLURM script to submit the job:
+
+   ```bash
+   #SBATCH --job-name=chipseq_analysis
+   #SBATCH --time=24:00:00
+   #SBATCH --cpus-per-task=8
+   #SBATCH --mem=32G
+   #SBATCH --output=chipseq-%j.out
+
+   # Load Nextflow
+   module load Nextflow
+
+   # Set the relative paths to the genome files
+   GENOME_DIR="mnt/research/common-data/Bio/genomes/Ensembl_GRCh38"
+   GTF_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.112.gtf.gz"
+   FASTA_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
+
+   # Run the ChIP-seq analysis
+   nextflow pull nf-core/chipseq
+   nextflow run nf-core/chipseq -profile singularity \
+     --input raw_data/samplesheet/samplesheet.csv \
+     --outdir results \
+     --fasta $FASTA_FILE \
+     --gtf $GTF_FILE \
+     -c icer.config
+   ```
+
+   Save the script as `chipseq_analysis.sh`.
+   
+   Submit the job to SLURM:
+
+   ```bash
+   sbatch chipseq_analysis.sh
    ```
 
 ## Repository Structure
@@ -41,7 +110,7 @@ The ChIP-seq data is analyzed using `nf-core/chipseq`. The workflow follows stan
 R5020_chipseq/
 ├── data/
 │   ├── raw/               # Raw data files downloaded from GEO
-│   └── design.csv         # Design file (optional) for sample conditions
+│   └── samplesheet.csv    # Design file for sample conditions
 ├── results/
 │   └── chipseq/           # Results from the ChIP-seq analysis
 ├── scripts/
