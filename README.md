@@ -30,7 +30,6 @@ The analysis is performed using nf-core workflows:
    First, create an `ids.csv` file that contains the list of GEO accession IDs to be fetched. The file should have the following format:
 
    ```csv
-   id
    GSE68355
    ```
 
