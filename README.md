@@ -50,8 +50,8 @@ The analysis is performed using nf-core workflows:
    # Run nf-core/fetchngs to fetch the data from GEO using an ids.csv file
    nextflow pull nf-core/fetchngs
    nextflow run nf-core/fetchngs -profile singularity \
-     --input ids.csv \
-     --outdir raw_data \
+     --input ./ids.csv \
+     --outdir ./raw_data \
      --download_method sratools \
      --nf_core_pipeline rnaseq \
      -c icer.config
@@ -81,15 +81,15 @@ The analysis is performed using nf-core workflows:
    module load Nextflow
 
    # Set the relative paths to the genome files
-   GENOME_DIR="mnt/research/common-data/Bio/genomes/Ensembl_GRCh38"
+   GENOME_DIR="/mnt/research/common-data/Bio/genomes/Ensembl_GRCh38"
    GTF_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.112.gtf.gz"
    FASTA_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
 
    # Run the ChIP-seq analysis
    nextflow pull nf-core/chipseq
    nextflow run nf-core/chipseq -profile singularity \
-     --input raw_data/samplesheet/samplesheet.csv \
-     --outdir results \
+     --input ./raw_data/samplesheet/samplesheet.csv \
+     --outdir ./results \
      --fasta $FASTA_FILE \
      --gtf $GTF_FILE \
      -c icer.config
