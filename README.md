@@ -38,6 +38,7 @@ The analysis is performed using nf-core workflows:
    Create a SLURM script to submit the job:
 
    ```bash
+   #!/bin/sh
    #SBATCH --job-name=fetchngs
    #SBATCH --time=4:00:00
    #SBATCH --cpus-per-task=4
@@ -71,6 +72,7 @@ The analysis is performed using nf-core workflows:
    Create a SLURM script to submit the job:
 
    ```bash
+   #!/bin/sh
    #SBATCH --job-name=chipseq_analysis
    #SBATCH --time=24:00:00
    #SBATCH --cpus-per-task=8
