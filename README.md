@@ -46,11 +46,11 @@ The analysis is performed using nf-core workflows:
    #SBATCH --output=fetchngs-%j.out
 
    # Load Nextflow
-   module load Nextflow
+   module load Nextflow/23.10.0
 
    # Run nf-core/fetchngs to fetch the data from GEO using an ids.csv file
    nextflow pull nf-core/fetchngs
-   nextflow run nf-core/fetchngs -profile singularity \
+   nextflow run nf-core/fetchngs -r 1.12.0 -profile singularity \
      --input ./ids.csv \
      --outdir ./raw_data \
      --download_method sratools \
@@ -80,7 +80,7 @@ The analysis is performed using nf-core workflows:
    #SBATCH --output=chipseq-%j.out
 
    # Load Nextflow
-   module load Nextflow
+   module load Nextflow/23.10.0
 
    # Set the relative paths to the genome files
    GENOME_DIR="/mnt/research/common-data/Bio/genomes/Ensembl_GRCh38"
@@ -89,9 +89,10 @@ The analysis is performed using nf-core workflows:
 
    # Run the ChIP-seq analysis
    nextflow pull nf-core/chipseq
-   nextflow run nf-core/chipseq -profile singularity \
-     --input ./raw_data/samplesheet/samplesheet.csv \
+   nextflow run nf-core/chipseq -r 2.1.0 -profile singularity \
+     --input ./raw_data/samplesheet/chip_samplesheet.csv \
      --outdir ./results \
+     --read_length 50 \
      --fasta $FASTA_FILE \
      --gtf $GTF_FILE \
      -c icer.config
